@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 var uniqueValidator = require('mongoose-unique-validator');
-const {CUSTOMER} = require('../config/constant')
+const {CUSTOMER} = require('../config/constant');
+const crypto = require('crypto');
 
 //------------ User Schema ------------//
 const UserSchema = new mongoose.Schema({
@@ -17,6 +18,21 @@ const UserSchema = new mongoose.Schema({
   wallet_address: { type: String, unique : true, default: null },
   nonce: { type: String, unique : true, default: null },
 }, { timestamps: true });
+
+// Pre-save hook for password hashing
+UserSchema.pre('save', async function(next) {
+  try {
+
+    // Generate nonce for wallet authentication if wallet_address is modified
+    if (this.isModified('wallet_address') && this.wallet_address) {
+      this.nonce = crypto.randomBytes(32).toString('hex');
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 UserSchema.plugin(uniqueValidator, {message: 'is already taken.'});
 
