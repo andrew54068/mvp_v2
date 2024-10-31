@@ -1,10 +1,11 @@
+const { registerValidator } = require('../validators/AuthValidator')
 const express = require('express');
 const router = express.Router();
 
 //------------ Importing Controllers ------------//
 const AuthController = require('../controllers/authController')
 
-router.post('/register', AuthController.register);
+router.post('/register', registerValidator, AuthController.register);
 router.post('/login', AuthController.login);
 router.get('/verify/:token', AuthController.verify);
 router.post('/resend', AuthController.resend);

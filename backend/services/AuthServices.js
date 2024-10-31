@@ -7,6 +7,10 @@ const OAuth2 = google.auth.OAuth2
 const jwt = require('jsonwebtoken')
 const {ROLE} = require('../config/constant')
 const JWT_KEY = "jwtactive987"
+const { v4: uuidv4 } = require('uuid');
+
+// Add uid generator function
+const uid = () => uuidv4();
 
 // user login function
 const verifyUserLogin = async (email,password)=>{
@@ -44,8 +48,8 @@ exports.login = async (body) => {
 }
 
 exports.register = async (header, body) => {
-	let { username, password, email } = body
-
+	let { username, password, email, wallet_address } = body
+    const nonce = uid()
 	if (await User.exists({ username: username, email: email }))
         throw new BadRequestError('User already exist.')
 
@@ -57,6 +61,8 @@ exports.register = async (header, body) => {
 		password: hashedPass,
 		email: email,
         role: ROLE.CUSTOMER,
+        wallet_address,
+        nonce
 	})
 
     await user.save()

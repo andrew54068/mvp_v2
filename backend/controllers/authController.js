@@ -1,9 +1,11 @@
+const { validationResult } = require('express-validator')
 const passport = require('passport');
 const bcryptjs = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
 const jwt = require('jsonwebtoken');
+const { ValidationError } = require('../utils/errors');
 const JWT_KEY = "jwtactive987";
 const JWT_RESET_KEY = "jwtreset987";
 
@@ -15,8 +17,10 @@ const User = require('../models/User');
 
 //------------ Register ------------//
 exports.register = async (req, res) => {
-	const respond = await AuthServices.register(req.headers, req.body)
-	res.status(200).json(respond)
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) throw new ValidationError(JSON.stringify(errors.array()))
+    const respond = await AuthServices.register(req.headers, req.body)
+    res.status(200).json(respond)
 }
 
 //------------ Login ------------//
