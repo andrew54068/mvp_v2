@@ -53,13 +53,10 @@ exports.register = async (header, body) => {
 	if (await User.exists({ username: username, email: email }))
         throw new BadRequestError('User already exist.')
 
-	let hashedPass = await bcryptjs.hash(password, 10)
-	// const emailVerificationCode = uid()
-
 	let user = new User({
-		username: username,
-		password: hashedPass,
-		email: email,
+		username,
+		password,
+		email,
         role: ROLE.CUSTOMER,
         wallet_address,
         nonce

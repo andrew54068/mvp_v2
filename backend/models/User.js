@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 var uniqueValidator = require('mongoose-unique-validator');
+const bcryptjs = require('bcryptjs')
 const {CUSTOMER} = require('../config/constant');
+const { BadRequestError } = require('../utils/errors');
 const crypto = require('crypto');
 
 //------------ User Schema ------------//
@@ -22,11 +24,20 @@ const UserSchema = new mongoose.Schema({
 // Pre-save hook for password hashing
 UserSchema.pre('save', async function(next) {
   try {
-
-    // Generate nonce for wallet authentication if wallet_address is modified
-    if (this.isModified('wallet_address') && this.wallet_address) {
-      this.nonce = crypto.randomBytes(32).toString('hex');
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.email)) {
+      return next(new BadRequestError('Invalid email format'));
     }
+
+    // Validate password length
+    const passwordRegex = /.{6,}/;
+    if (!passwordRegex.test(this.password)) {
+      return next(new BadRequestError('Password must be at least 6 characters'));
+    }
+
+    let hashedPass = await bcryptjs.hash(this.password, 10)
+    this.password = hashedPass
 
     next();
   } catch (error) {
